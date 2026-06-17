@@ -1,40 +1,37 @@
-import { useState, useEffect, useCallback } from 'react'
-import { supabase } from '../lib/supabase'
-import { useAuth } from './useAuth'
+import { useLiveQuery } from 'dexie-react-hooks'
+import { db } from '../lib/db'
 import type { TimeEntry, DateRange } from '../types'
 
 export function useTimeEntries(range?: DateRange) {
-  const { user } = useAuth()
-  const [entries, setEntries] = useState<TimeEntry[]>([])
-  const [loading, setLoading] = useState(true)
-  const [fetchTrigger, setFetchTrigger] = useState(0)
+  const startISO = range && !isNaN(range.start.getTime()) ? range.start.toISOString() : null
+  const endISO = range && !isNaN(range.end.getTime()) ? range.end.toISOString() : null
 
-  useEffect(() => {
-    if (!user || !range) return
-    if (isNaN(range.start.getTime()) || isNaN(range.end.getTime())) return
-    let cancelled = false
+  const result = useLiveQuery(
+    async () => {
+      if (!startISO || !endISO) return []
 
-    supabase
-      .from('time_entries')
-      .select('*, client:clients(*)')
-      .eq('user_id', user.id)
-      .not('end_time', 'is', null)
-      .gte('start_time', range.start.toISOString())
-      .lte('start_time', range.end.toISOString())
-      .order('start_time', { ascending: false })
-      .then(({ data }) => {
-        if (!cancelled) {
-          setEntries((data as TimeEntry[]) ?? [])
-          setLoading(false)
-        }
-      })
+      const raw = await db.time_entries
+        .orderBy('start_time')
+        .reverse()
+        .filter(
+          (e) =>
+            e.end_time !== null && e.start_time >= startISO && e.start_time <= endISO
+        )
+        .toArray()
 
-    return () => {
-      cancelled = true
-    }
-  }, [user, range, fetchTrigger])
+      const clientIds = [...new Set(raw.map((e) => e.client_id))]
+      const clients = await db.clients.bulkGet(clientIds)
+      const clientMap = new Map(
+        clients.filter(Boolean).map((c) => [c!.id, c!])
+      )
 
-  const refetch = useCallback(() => setFetchTrigger((n) => n + 1), [])
+      return raw.map((e) => ({ ...e, client: clientMap.get(e.client_id) }))
+    },
+    [startISO, endISO]
+  )
+
+  const entries = result ?? []
+  const loading = result === undefined
 
   const addEntry = async (
     clientId: string,
@@ -43,26 +40,20 @@ export function useTimeEntries(range?: DateRange) {
     durationMinutes: number,
     note?: string
   ) => {
-    if (!user) return
-    const { data } = await supabase
-      .from('time_entries')
-      .insert({
-        user_id: user.id,
-        client_id: clientId,
-        start_time: startTime,
-        end_time: endTime,
-        duration_minutes: durationMinutes,
-        note: note ?? null,
-      })
-      .select('*, client:clients(*)')
-      .single()
-    if (data) setEntries((prev) => [data as TimeEntry, ...prev])
+    await db.time_entries.add({
+      id: crypto.randomUUID(),
+      client_id: clientId,
+      start_time: startTime,
+      end_time: endTime,
+      duration_minutes: durationMinutes,
+      note: note ?? null,
+      created_at: new Date().toISOString(),
+    })
   }
 
   const deleteEntry = async (id: string) => {
-    await supabase.from('time_entries').delete().eq('id', id)
-    setEntries((prev) => prev.filter((e) => e.id !== id))
+    await db.time_entries.delete(id)
   }
 
-  return { entries, loading, addEntry, deleteEntry, refetch }
+  return { entries: entries as TimeEntry[], loading, addEntry, deleteEntry }
 }

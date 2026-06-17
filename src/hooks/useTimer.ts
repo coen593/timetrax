@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { supabase } from '../lib/supabase'
-import { useAuth } from './useAuth'
+import { db } from '../lib/db'
 import type { TimeEntry } from '../types'
 
 const STORAGE_KEY = 'timetrax_active_timer'
@@ -11,8 +10,7 @@ type StoredTimer = {
   startTime: string
 }
 
-export function useTimer(onStop?: () => void) {
-  const { user } = useAuth()
+export function useTimer() {
   const [activeEntry, setActiveEntry] = useState<TimeEntry | null>(null)
   const [elapsed, setElapsed] = useState(0)
   const [isRunning, setIsRunning] = useState(false)
@@ -39,24 +37,19 @@ export function useTimer(onStop?: () => void) {
 
   useEffect(() => {
     const stored = localStorage.getItem(STORAGE_KEY)
-    if (!stored || !user) return
+    if (!stored) return
 
     const timer: StoredTimer = JSON.parse(stored)
-    supabase
-      .from('time_entries')
-      .select('*, client:clients(*)')
-      .eq('id', timer.entryId)
-      .is('end_time', null)
-      .single()
-      .then(({ data }) => {
-        if (data) {
-          setActiveEntry(data as TimeEntry)
-          startCounting(timer.startTime)
-        } else {
-          localStorage.removeItem(STORAGE_KEY)
-        }
-      })
-  }, [user, startCounting])
+    db.time_entries.get(timer.entryId).then(async (entry) => {
+      if (entry && !entry.end_time) {
+        const client = await db.clients.get(entry.client_id)
+        setActiveEntry({ ...entry, client: client ?? undefined })
+        startCounting(timer.startTime)
+      } else {
+        localStorage.removeItem(STORAGE_KEY)
+      }
+    })
+  }, [startCounting])
 
   useEffect(() => {
     return () => {
@@ -65,26 +58,27 @@ export function useTimer(onStop?: () => void) {
   }, [])
 
   const start = async (clientId: string) => {
-    if (!user || isRunning) return
+    if (isRunning) return
+    const id = crypto.randomUUID()
     const startTime = new Date().toISOString()
-    const { data } = await supabase
-      .from('time_entries')
-      .insert({
-        user_id: user.id,
-        client_id: clientId,
-        start_time: startTime,
-      })
-      .select('*, client:clients(*)')
-      .single()
-
-    if (data) {
-      setActiveEntry(data as TimeEntry)
-      startCounting(startTime)
-      localStorage.setItem(
-        STORAGE_KEY,
-        JSON.stringify({ entryId: data.id, clientId, startTime } satisfies StoredTimer)
-      )
+    const entry: TimeEntry = {
+      id,
+      client_id: clientId,
+      start_time: startTime,
+      end_time: null,
+      duration_minutes: null,
+      note: null,
+      created_at: startTime,
     }
+
+    await db.time_entries.add(entry)
+    const client = await db.clients.get(clientId)
+    setActiveEntry({ ...entry, client: client ?? undefined })
+    startCounting(startTime)
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({ entryId: id, clientId, startTime } satisfies StoredTimer)
+    )
   }
 
   const stop = async (note?: string) => {
@@ -94,18 +88,17 @@ export function useTimer(onStop?: () => void) {
       (new Date(endTime).getTime() - new Date(activeEntry.start_time).getTime()) / 60000
     )
 
-    await supabase
-      .from('time_entries')
-      .update({ end_time: endTime, duration_minutes: durationMinutes, note: note ?? null })
-      .eq('id', activeEntry.id)
-
+    await db.time_entries.update(activeEntry.id, {
+      end_time: endTime,
+      duration_minutes: durationMinutes,
+      note: note ?? null,
+    })
     clearTimer()
-    onStop?.()
   }
 
   const discard = async () => {
     if (!activeEntry) return
-    await supabase.from('time_entries').delete().eq('id', activeEntry.id)
+    await db.time_entries.delete(activeEntry.id)
     clearTimer()
   }
 

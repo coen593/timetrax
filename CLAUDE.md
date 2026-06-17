@@ -1,20 +1,13 @@
 # TimeTrax
 
-Freelancer time tracking app with per-client hourly rates.
+Freelancer time tracking app. Local-first -- all data in IndexedDB via Dexie.js, no backend.
 
 ## Stack
 
 - React 19 + TypeScript + Vite
-- Supabase (auth + Postgres + RLS)
+- Dexie.js (IndexedDB) + dexie-react-hooks
 - Tailwind CSS v4
 - date-fns, lucide-react, react-router-dom v7
-
-## Getting Started
-
-1. Create a Supabase project
-2. Run `supabase/schema.sql` in the SQL editor
-3. Copy `.env.example` to `.env` and fill in Supabase URL + anon key
-4. `npm install && npm run dev`
 
 ## Commands
 
@@ -29,19 +22,16 @@ npm run preview  # Preview production build
 
 ```
 src/
-  contexts/     # React context (auth)
-  hooks/        # Custom hooks (useAuth, useClients, useTimeEntries, useTimer)
+  hooks/        # Custom hooks (useClients, useTimeEntries, useTimer)
   components/   # Reusable UI components
   pages/        # Route-level page components
-  lib/          # Supabase client, formatters
+  lib/          # Dexie database, formatters
   types/        # TypeScript types
-supabase/
-  schema.sql    # Database schema with RLS policies
 ```
 
 ## Database
 
-Two tables with RLS: `clients` and `time_entries`. Schema in `supabase/schema.sql`. Both use `user_id` for row-level security.
+Dexie.js with two object stores: `clients` and `time_entries`. Schema defined in `src/lib/db.ts`. Data lives in the browser's IndexedDB -- no server, no auth.
 
 ## Conventions
 

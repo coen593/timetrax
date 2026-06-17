@@ -16,9 +16,9 @@ export function TimeTracker() {
     return { start: startOfDay(now), end: endOfDay(now) }
   }, [])
 
-  const { entries, addEntry, deleteEntry, refetch } = useTimeEntries(range)
+  const { entries, addEntry, deleteEntry } = useTimeEntries(range)
   const [selectedClientId, setSelectedClientId] = useState('')
-  const { isRunning, elapsed, activeEntry, start, stop, discard } = useTimer(refetch)
+  const { isRunning, elapsed, activeEntry, start, stop, discard } = useTimer()
 
   const handleStartTimer = async () => {
     if (!selectedClientId) return

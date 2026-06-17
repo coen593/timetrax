@@ -16,9 +16,9 @@ export function Dashboard() {
     return { start: startOfMonth(now), end: endOfDay(now) }
   }, [])
 
-  const { entries, deleteEntry, refetch } = useTimeEntries(range)
+  const { entries, deleteEntry } = useTimeEntries(range)
   const [selectedClientId, setSelectedClientId] = useState('')
-  const { isRunning, elapsed, activeEntry, start, stop, discard } = useTimer(refetch)
+  const { isRunning, elapsed, activeEntry, start, stop, discard } = useTimer()
 
   const stats = useMemo(() => {
     const now = new Date()

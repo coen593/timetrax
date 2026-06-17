@@ -1,6 +1,5 @@
 export type Client = {
   id: string
-  user_id: string
   name: string
   hourly_rate: number
   color: string
@@ -10,7 +9,6 @@ export type Client = {
 
 export type TimeEntry = {
   id: string
-  user_id: string
   client_id: string
   start_time: string
   end_time: string | null

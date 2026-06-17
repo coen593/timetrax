@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { NavLink, Outlet } from 'react-router-dom'
-import { LayoutDashboard, Clock, Users, BarChart3, LogOut, Menu, X } from 'lucide-react'
-import { useAuth } from '../hooks/useAuth'
+import { LayoutDashboard, Clock, Users, BarChart3, Menu, X } from 'lucide-react'
 
 const NAV_ITEMS = [
   { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
@@ -11,7 +10,6 @@ const NAV_ITEMS = [
 ]
 
 export function Layout() {
-  const { user, signOut } = useAuth()
   const [mobileOpen, setMobileOpen] = useState(false)
 
   return (
@@ -50,16 +48,6 @@ export function Layout() {
             </NavLink>
           ))}
         </nav>
-        <div className="p-4 border-t border-slate-700">
-          <div className="text-sm text-slate-400 truncate mb-2">{user?.email}</div>
-          <button
-            onClick={signOut}
-            className="flex items-center gap-2 text-sm text-slate-400 hover:text-white transition-colors"
-          >
-            <LogOut size={16} />
-            Sign out
-          </button>
-        </div>
       </aside>
 
       {mobileOpen && (
