@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { NavLink, Outlet } from 'react-router-dom'
-import { LayoutDashboard, Clock, Users, BarChart3, Menu, X } from 'lucide-react'
+import { LayoutDashboard, Clock, Users, BarChart3, Menu, X, HardDrive } from 'lucide-react'
 
 const NAV_ITEMS = [
   { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
@@ -48,6 +48,12 @@ export function Layout() {
             </NavLink>
           ))}
         </nav>
+        <div className="p-4 border-t border-slate-700">
+          <div className="flex items-start gap-2 text-xs text-slate-500">
+            <HardDrive size={14} className="shrink-0 mt-0.5" />
+            <span>Data is stored in this browser. Do not clear browser data.</span>
+          </div>
+        </div>
       </aside>
 
       {mobileOpen && (
