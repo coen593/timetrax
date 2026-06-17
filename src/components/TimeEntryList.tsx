@@ -16,9 +16,9 @@ export function TimeEntryList({ entries, onDelete }: Props) {
   return (
     <div className="space-y-2">
       {entries.map((entry) => {
-        const duration = entry.duration_minutes ?? 0
+        const duration = entry.duration_seconds ?? 0
         const rate = entry.client?.hourly_rate ?? 0
-        const amount = (duration / 60) * rate
+        const amount = (duration / 3600) * rate
         return (
           <div
             key={entry.id}

@@ -12,7 +12,7 @@ export type TimeEntry = {
   client_id: string
   start_time: string
   end_time: string | null
-  duration_minutes: number | null
+  duration_seconds: number | null
   note: string | null
   created_at: string
   client?: Client

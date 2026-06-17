@@ -29,10 +29,10 @@ export function TimeTracker() {
     clientId: string,
     startTime: string,
     endTime: string,
-    durationMinutes: number,
+    durationSeconds: number,
     note?: string
   ) => {
-    await addEntry(clientId, startTime, endTime, durationMinutes, note)
+    await addEntry(clientId, startTime, endTime, durationSeconds, note)
   }
 
   return (

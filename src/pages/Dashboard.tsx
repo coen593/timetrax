@@ -26,25 +26,25 @@ export function Dashboard() {
     const weekStart = startOfWeek(now, { weekStartsOn: 1 })
     const monthStart = startOfMonth(now)
 
-    let todayMinutes = 0
-    let weekMinutes = 0
-    let monthMinutes = 0
+    let todaySeconds = 0
+    let weekSeconds = 0
+    let monthSeconds = 0
     let monthEarnings = 0
 
     for (const entry of entries) {
       const entryDate = new Date(entry.start_time)
-      const minutes = entry.duration_minutes ?? 0
+      const seconds = entry.duration_seconds ?? 0
       const rate = entry.client?.hourly_rate ?? 0
 
       if (entryDate >= monthStart) {
-        monthMinutes += minutes
-        monthEarnings += (minutes / 60) * rate
+        monthSeconds += seconds
+        monthEarnings += (seconds / 3600) * rate
       }
-      if (entryDate >= weekStart) weekMinutes += minutes
-      if (entryDate >= dayStart) todayMinutes += minutes
+      if (entryDate >= weekStart) weekSeconds += seconds
+      if (entryDate >= dayStart) todaySeconds += seconds
     }
 
-    return { todayMinutes, weekMinutes, monthMinutes, monthEarnings }
+    return { todaySeconds, weekSeconds, monthSeconds, monthEarnings }
   }, [entries])
 
   const recentEntries = entries.slice(0, 10)

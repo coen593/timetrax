@@ -59,8 +59,8 @@ export function useTimer() {
 
   const start = async (clientId: string) => {
     if (isRunning && activeEntry) {
-      if (activeEntry.client_id === clientId) return
       await stop()
+      if (activeEntry.client_id === clientId) return
     }
     const id = crypto.randomUUID()
     const startTime = new Date().toISOString()
@@ -69,7 +69,7 @@ export function useTimer() {
       client_id: clientId,
       start_time: startTime,
       end_time: null,
-      duration_minutes: null,
+      duration_seconds: null,
       note: null,
       created_at: startTime,
     }
@@ -87,13 +87,13 @@ export function useTimer() {
   const stop = async (note?: string) => {
     if (!activeEntry) return
     const endTime = new Date().toISOString()
-    const durationMinutes = Math.round(
-      (new Date(endTime).getTime() - new Date(activeEntry.start_time).getTime()) / 60000
+    const durationSeconds = Math.round(
+      (new Date(endTime).getTime() - new Date(activeEntry.start_time).getTime()) / 1000
     )
 
     await db.time_entries.update(activeEntry.id, {
       end_time: endTime,
-      duration_minutes: durationMinutes,
+      duration_seconds: durationSeconds,
       note: note ?? null,
     })
     clearTimer()

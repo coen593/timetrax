@@ -20,7 +20,7 @@ export function ExportButton({ entries, filename }: Props) {
       'Note',
     ]
     const rows = entries.map((entry) => {
-      const duration = entry.duration_minutes ? entry.duration_minutes / 60 : 0
+      const duration = entry.duration_seconds ? entry.duration_seconds / 3600 : 0
       const rate = entry.client?.hourly_rate ?? 0
       return [
         format(new Date(entry.start_time), 'yyyy-MM-dd'),

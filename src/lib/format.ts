@@ -1,9 +1,11 @@
-export function formatDuration(minutes: number): string {
-  const h = Math.floor(minutes / 60)
-  const m = Math.round(minutes % 60)
-  if (h === 0) return `${m}m`
-  if (m === 0) return `${h}h`
-  return `${h}h ${m}m`
+export function formatDuration(seconds: number): string {
+  const h = Math.floor(seconds / 3600)
+  const m = Math.floor((seconds % 3600) / 60)
+  const s = seconds % 60
+  if (h === 0 && m === 0) return `${s}s`
+  if (h === 0) return `${m}m ${s}s`
+  if (m === 0 && s === 0) return `${h}h`
+  return `${h}h ${m}m ${s}s`
 }
 
 export function formatElapsed(seconds: number): string {

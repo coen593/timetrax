@@ -22,7 +22,7 @@ import type { TimePeriod, TimeEntry } from '../types'
 type GroupedData = {
   label: string
   entries: TimeEntry[]
-  totalMinutes: number
+  totalSeconds: number
   totalEarnings: number
 }
 
@@ -63,13 +63,13 @@ function groupEntries(entries: TimeEntry[], period: TimePeriod): GroupedData[] {
       const grouped = entries.filter((e) =>
         isWithinInterval(new Date(e.start_time), { start, end })
       )
-      const totalMinutes = grouped.reduce((sum, e) => sum + (e.duration_minutes ?? 0), 0)
+      const totalSeconds = grouped.reduce((sum, e) => sum + (e.duration_seconds ?? 0), 0)
       const totalEarnings = grouped.reduce((sum, e) => {
-        const minutes = e.duration_minutes ?? 0
+        const seconds = e.duration_seconds ?? 0
         const rate = e.client?.hourly_rate ?? 0
-        return sum + (minutes / 60) * rate
+        return sum + (seconds / 3600) * rate
       }, 0)
-      return { label, entries: grouped, totalMinutes, totalEarnings }
+      return { label, entries: grouped, totalSeconds, totalEarnings }
     })
     .filter((g) => g.entries.length > 0)
     .reverse()
@@ -102,13 +102,13 @@ export function Reports() {
   const grouped = useMemo(() => groupEntries(filtered, period), [filtered, period])
 
   const totals = useMemo(() => {
-    const totalMinutes = filtered.reduce((sum, e) => sum + (e.duration_minutes ?? 0), 0)
+    const totalSeconds = filtered.reduce((sum, e) => sum + (e.duration_seconds ?? 0), 0)
     const totalEarnings = filtered.reduce((sum, e) => {
-      const minutes = e.duration_minutes ?? 0
+      const seconds = e.duration_seconds ?? 0
       const rate = e.client?.hourly_rate ?? 0
-      return sum + (minutes / 60) * rate
+      return sum + (seconds / 3600) * rate
     }, 0)
-    return { totalMinutes, totalEarnings }
+    return { totalSeconds, totalEarnings }
   }, [filtered])
 
   return (
@@ -174,7 +174,7 @@ export function Reports() {
             Total Hours
           </div>
           <div className="mt-1 text-2xl font-bold text-gray-900">
-            {formatDuration(totals.totalMinutes)}
+            {formatDuration(totals.totalSeconds)}
           </div>
         </div>
         <div className="bg-white rounded-xl border border-gray-200 p-5">
@@ -198,13 +198,13 @@ export function Reports() {
               <div className="flex items-center justify-between mb-2">
                 <h3 className="text-sm font-semibold text-gray-700">{group.label}</h3>
                 <div className="flex gap-4 text-sm text-gray-500">
-                  <span>{formatDuration(group.totalMinutes)}</span>
+                  <span>{formatDuration(group.totalSeconds)}</span>
                   <span>{formatCurrency(group.totalEarnings)}</span>
                 </div>
               </div>
               <div className="space-y-1">
                 {group.entries.map((entry) => {
-                  const duration = entry.duration_minutes ?? 0
+                  const duration = entry.duration_seconds ?? 0
                   const rate = entry.client?.hourly_rate ?? 0
                   return (
                     <div
@@ -225,7 +225,7 @@ export function Reports() {
                       <span className="text-gray-500 flex-1 truncate">{entry.note}</span>
                       <span className="font-medium text-gray-900">{formatDuration(duration)}</span>
                       <span className="text-gray-500 w-24 text-right">
-                        {formatCurrency((duration / 60) * rate)}
+                        {formatCurrency((duration / 3600) * rate)}
                       </span>
                     </div>
                   )

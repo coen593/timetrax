@@ -37,7 +37,7 @@ export function useTimeEntries(range?: DateRange) {
     clientId: string,
     startTime: string,
     endTime: string,
-    durationMinutes: number,
+    durationSeconds: number,
     note?: string
   ) => {
     await db.time_entries.add({
@@ -45,7 +45,7 @@ export function useTimeEntries(range?: DateRange) {
       client_id: clientId,
       start_time: startTime,
       end_time: endTime,
-      duration_minutes: durationMinutes,
+      duration_seconds: durationSeconds,
       note: note ?? null,
       created_at: new Date().toISOString(),
     })

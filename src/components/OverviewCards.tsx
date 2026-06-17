@@ -1,17 +1,17 @@
 import { formatDuration, formatCurrency } from '../lib/format'
 
 type Props = {
-  todayMinutes: number
-  weekMinutes: number
-  monthMinutes: number
+  todaySeconds: number
+  weekSeconds: number
+  monthSeconds: number
   monthEarnings: number
 }
 
-export function OverviewCards({ todayMinutes, weekMinutes, monthMinutes, monthEarnings }: Props) {
+export function OverviewCards({ todaySeconds, weekSeconds, monthSeconds, monthEarnings }: Props) {
   const cards = [
-    { label: 'Today', value: formatDuration(todayMinutes) },
-    { label: 'This Week', value: formatDuration(weekMinutes) },
-    { label: 'This Month', value: formatDuration(monthMinutes) },
+    { label: 'Today', value: formatDuration(todaySeconds) },
+    { label: 'This Week', value: formatDuration(weekSeconds) },
+    { label: 'This Month', value: formatDuration(monthSeconds) },
     { label: 'Month Earnings', value: formatCurrency(monthEarnings) },
   ]
 

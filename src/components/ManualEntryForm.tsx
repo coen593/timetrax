@@ -9,7 +9,7 @@ type Props = {
     clientId: string,
     startTime: string,
     endTime: string,
-    durationMinutes: number,
+    durationSeconds: number,
     note?: string
   ) => Promise<void>
 }
@@ -29,12 +29,12 @@ export function ManualEntryForm({ clients, onSubmit }: Props) {
 
     const start = new Date(`${date}T${startTime}`)
     const end = new Date(`${date}T${endTime}`)
-    const durationMinutes = Math.round((end.getTime() - start.getTime()) / 60000)
+    const durationSeconds = Math.round((end.getTime() - start.getTime()) / 1000)
 
-    if (durationMinutes <= 0) return
+    if (durationSeconds <= 0) return
 
     setSubmitting(true)
-    await onSubmit(clientId, start.toISOString(), end.toISOString(), durationMinutes, note || undefined)
+    await onSubmit(clientId, start.toISOString(), end.toISOString(), durationSeconds, note || undefined)
     setNote('')
     setSubmitting(false)
   }
