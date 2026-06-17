@@ -1,12 +1,12 @@
 import { useState, useMemo } from 'react'
 import { startOfDay, startOfWeek, startOfMonth, endOfDay } from 'date-fns'
-import { Play } from 'lucide-react'
+import { Square, Trash2 } from 'lucide-react'
 import { useClients } from '../hooks/useClients'
 import { useTimeEntries } from '../hooks/useTimeEntries'
 import { useTimer } from '../hooks/useTimer'
 import { OverviewCards } from '../components/OverviewCards'
-import { Timer } from '../components/Timer'
 import { TimeEntryList } from '../components/TimeEntryList'
+import { formatElapsed } from '../lib/format'
 
 export function Dashboard() {
   const { clients } = useClients()
@@ -17,8 +17,8 @@ export function Dashboard() {
   }, [])
 
   const { entries, deleteEntry } = useTimeEntries(range)
-  const [selectedClientId, setSelectedClientId] = useState('')
   const { isRunning, elapsed, activeEntry, start, stop, discard } = useTimer()
+  const [note, setNote] = useState('')
 
   const stats = useMemo(() => {
     const now = new Date()
@@ -48,10 +48,11 @@ export function Dashboard() {
   }, [entries])
 
   const recentEntries = entries.slice(0, 10)
+  const activeClients = clients.filter((c) => !c.archived)
 
-  const handleStartTimer = async () => {
-    if (!selectedClientId) return
-    await start(selectedClientId)
+  const handleStop = async () => {
+    await stop(note || undefined)
+    setNote('')
   }
 
   return (
@@ -60,33 +61,71 @@ export function Dashboard() {
 
       <OverviewCards {...stats} />
 
-      {isRunning && activeEntry ? (
-        <Timer entry={activeEntry} elapsed={elapsed} onStop={stop} onDiscard={discard} />
-      ) : (
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
-          <h3 className="text-sm font-semibold text-gray-900 mb-3">Quick Start</h3>
-          <div className="flex gap-3">
-            <select
-              value={selectedClientId}
-              onChange={(e) => setSelectedClientId(e.target.value)}
-              className="flex-1 px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">Select a client...</option>
-              {clients.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
-            <button
-              onClick={handleStartTimer}
-              disabled={!selectedClientId}
-              className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm disabled:opacity-50"
-            >
-              <Play size={16} fill="currentColor" />
-              Start Timer
-            </button>
-          </div>
+      <div>
+        <h3 className="text-sm font-semibold text-gray-900 mb-3">
+          {isRunning ? 'Tracking' : 'Start Tracking'}
+        </h3>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+          {activeClients.map((client) => {
+            const isActive = isRunning && activeEntry?.client_id === client.id
+            return (
+              <button
+                key={client.id}
+                onClick={() => start(client.id)}
+                className={`relative flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all text-sm font-medium ${
+                  isActive
+                    ? 'border-current bg-white shadow-md'
+                    : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm'
+                }`}
+                style={isActive ? { borderColor: client.color, color: client.color } : undefined}
+              >
+                <div
+                  className={`w-4 h-4 rounded-full ${isActive ? 'animate-pulse' : ''}`}
+                  style={{ backgroundColor: client.color }}
+                />
+                <span className={isActive ? '' : 'text-gray-700'}>{client.name}</span>
+                {isActive && (
+                  <span className="text-lg font-mono font-bold tabular-nums">
+                    {formatElapsed(elapsed)}
+                  </span>
+                )}
+              </button>
+            )
+          })}
+        </div>
+        {activeClients.length === 0 && (
+          <p className="text-sm text-gray-400 text-center py-6">
+            Add clients first to start tracking time.
+          </p>
+        )}
+      </div>
+
+      {isRunning && activeEntry && (
+        <div className="flex items-center gap-3 bg-white rounded-xl border border-gray-200 p-4">
+          <input
+            type="text"
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            placeholder="Add a note (optional)..."
+            className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') handleStop()
+            }}
+          />
+          <button
+            onClick={() => discard()}
+            className="p-2.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+            title="Discard"
+          >
+            <Trash2 size={20} />
+          </button>
+          <button
+            onClick={handleStop}
+            className="flex items-center gap-2 px-4 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium text-sm"
+          >
+            <Square size={16} fill="currentColor" />
+            Stop
+          </button>
         </div>
       )}
 

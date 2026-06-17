@@ -58,7 +58,10 @@ export function useTimer() {
   }, [])
 
   const start = async (clientId: string) => {
-    if (isRunning) return
+    if (isRunning && activeEntry) {
+      if (activeEntry.client_id === clientId) return
+      await stop()
+    }
     const id = crypto.randomUUID()
     const startTime = new Date().toISOString()
     const entry: TimeEntry = {
