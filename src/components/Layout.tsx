@@ -51,7 +51,7 @@ export function Layout() {
         <div className="p-4 border-t border-slate-700">
           <div className="flex items-start gap-2 text-xs text-slate-500">
             <HardDrive size={14} className="shrink-0 mt-0.5" />
-            <span>Data is stored in this browser. Do not clear browser data.</span>
+            <span>Data is stored locally on this device.</span>
           </div>
         </div>
       </aside>
