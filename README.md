@@ -1,73 +1,57 @@
-# React + TypeScript + Vite
+# TimeTrax
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A simple time tracking desktop app for freelancers. Track hours per client, see overviews, and export to CSV.
 
-Currently, two official plugins are available:
+Local-first -- all data stays on your machine (IndexedDB). No accounts, no cloud, no backend.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Features
 
-## React Compiler
+- **One-click timer** -- click a client to start tracking, click again to stop
+- **Manual entry** -- log time after the fact with start/end times
+- **Per-client hourly rates** (EUR) -- earnings calculated automatically
+- **Overviews** -- daily, weekly, monthly breakdowns per client or total
+- **CSV export** -- export filtered time entries for invoicing
+- **Seconds precision** -- durations tracked to the second
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Download
 
-## Expanding the ESLint configuration
+Grab the latest installer from the [Releases page](https://github.com/coen593/timetrax/releases):
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- **Windows** -- `.exe` (NSIS installer, no setup required beyond running it)
+- **macOS** -- `.dmg`
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+> Windows may show a SmartScreen warning on first install since the app is not code-signed. Click "More info" then "Run anyway".
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+## Development
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install
+npm run dev          # Vite dev server
+npm run electron:dev # Build + launch Electron locally
+npm run lint         # ESLint
+npm run build        # TypeScript + Vite production build
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### Building installers
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+Push a version tag to trigger the GitHub Actions build:
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+# bump version in package.json, then:
+git tag v1.x.x
+git push --tags
 ```
+
+This builds Windows and macOS installers and creates a draft GitHub Release.
+
+## Stack
+
+- React 19 + TypeScript + Vite
+- Electron (desktop wrapper)
+- Dexie.js (IndexedDB)
+- Tailwind CSS v4
+- date-fns, lucide-react, react-router-dom
+
+## License
+
+[GPL-3.0](LICENSE)
