@@ -13,8 +13,10 @@ import {
   isWithinInterval,
   subMonths,
 } from 'date-fns'
+import { Trash2, X } from 'lucide-react'
 import { useTimeEntries } from '../hooks/useTimeEntries'
 import { useClients } from '../hooks/useClients'
+import { useToast } from '../hooks/useToast'
 import { ExportButton } from '../components/ExportButton'
 import { formatDuration, formatCurrency } from '../lib/format'
 import type { TimePeriod, TimeEntry } from '../types'
@@ -77,12 +79,14 @@ function groupEntries(entries: TimeEntry[], period: TimePeriod): GroupedData[] {
 
 export function Reports() {
   const { clients } = useClients()
+  const { showToast } = useToast()
   const [startDate, setStartDate] = useState(() =>
     format(subMonths(new Date(), 1), 'yyyy-MM-dd')
   )
   const [endDate, setEndDate] = useState(() => format(new Date(), 'yyyy-MM-dd'))
   const [clientFilter, setClientFilter] = useState('')
   const [period, setPeriod] = useState<TimePeriod>('daily')
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null)
 
   const range = useMemo(
     () => ({
@@ -92,7 +96,13 @@ export function Reports() {
     [startDate, endDate]
   )
 
-  const { entries, loading } = useTimeEntries(range)
+  const { entries, loading, deleteEntry } = useTimeEntries(range)
+
+  const handleDelete = async (id: string) => {
+    await deleteEntry(id)
+    setPendingDeleteId(null)
+    showToast('Time entry deleted')
+  }
 
   const filtered = useMemo(
     () => (clientFilter ? entries.filter((e) => e.client_id === clientFilter) : entries),
@@ -227,12 +237,52 @@ export function Reports() {
                       <span className="text-gray-500 w-24 text-right">
                         {formatCurrency((duration / 3600) * rate)}
                       </span>
+                      <button
+                        onClick={() => setPendingDeleteId(entry.id)}
+                        className="p-1 text-gray-300 hover:text-red-500 transition-colors shrink-0"
+                      >
+                        <Trash2 size={14} />
+                      </button>
                     </div>
                   )
                 })}
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {pendingDeleteId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full mx-4 p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-bold text-gray-900">Whoopsie daisy!</h3>
+              <button
+                onClick={() => setPendingDeleteId(null)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            <p className="text-sm text-gray-600 leading-relaxed">
+              Are you suuure? This time entry will vanish into the void, never to return.
+              Not even Coen can save it. Pinky promise you meant to do that?
+            </p>
+            <div className="mt-6 flex gap-3 justify-end">
+              <button
+                onClick={() => setPendingDeleteId(null)}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+              >
+                Nope, my bad
+              </button>
+              <button
+                onClick={() => handleDelete(pendingDeleteId)}
+                className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors"
+              >
+                Pinky promise, delete it
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

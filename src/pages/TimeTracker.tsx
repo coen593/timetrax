@@ -4,6 +4,7 @@ import { Play } from 'lucide-react'
 import { useClients } from '../hooks/useClients'
 import { useTimeEntries } from '../hooks/useTimeEntries'
 import { useTimer } from '../hooks/useTimer'
+import { useToast } from '../hooks/useToast'
 import { Timer } from '../components/Timer'
 import { ManualEntryForm } from '../components/ManualEntryForm'
 import { TimeEntryList } from '../components/TimeEntryList'
@@ -19,10 +20,16 @@ export function TimeTracker() {
   const { entries, addEntry, deleteEntry } = useTimeEntries(range)
   const [selectedClientId, setSelectedClientId] = useState('')
   const { isRunning, elapsed, activeEntry, start, stop, discard } = useTimer()
+  const { showToast } = useToast()
 
   const handleStartTimer = async () => {
     if (!selectedClientId) return
     await start(selectedClientId)
+  }
+
+  const handleStopTimer = async (note?: string) => {
+    await stop(note)
+    showToast('Time entry saved')
   }
 
   const handleManualEntry = async (
@@ -33,6 +40,12 @@ export function TimeTracker() {
     note?: string
   ) => {
     await addEntry(clientId, startTime, endTime, durationSeconds, note)
+    showToast('Time entry added')
+  }
+
+  const handleDelete = async (id: string) => {
+    await deleteEntry(id)
+    showToast('Time entry deleted')
   }
 
   return (
@@ -40,7 +53,7 @@ export function TimeTracker() {
       <h2 className="text-2xl font-bold text-gray-900">Time Tracker</h2>
 
       {isRunning && activeEntry ? (
-        <Timer entry={activeEntry} elapsed={elapsed} onStop={stop} onDiscard={discard} />
+        <Timer entry={activeEntry} elapsed={elapsed} onStop={handleStopTimer} onDiscard={discard} />
       ) : (
         <div className="bg-white rounded-xl border border-gray-200 p-6">
           <h3 className="text-sm font-semibold text-gray-900 mb-3">Start Timer</h3>
@@ -73,7 +86,7 @@ export function TimeTracker() {
 
       <div>
         <h3 className="text-sm font-semibold text-gray-900 mb-3">Today's Entries</h3>
-        <TimeEntryList entries={entries} onDelete={deleteEntry} />
+        <TimeEntryList entries={entries} onDelete={handleDelete} />
       </div>
     </div>
   )

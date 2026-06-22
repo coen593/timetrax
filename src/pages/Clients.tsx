@@ -1,20 +1,24 @@
 import { useState } from 'react'
 import { Plus, Pencil, Archive } from 'lucide-react'
 import { useClients } from '../hooks/useClients'
+import { useToast } from '../hooks/useToast'
 import { ClientForm } from '../components/ClientForm'
 import { formatCurrency } from '../lib/format'
 import type { Client } from '../types'
 
 export function Clients() {
   const { clients, addClient, updateClient, archiveClient } = useClients()
+  const { showToast } = useToast()
   const [showForm, setShowForm] = useState(false)
   const [editingClient, setEditingClient] = useState<Client | undefined>()
 
   const handleSubmit = async (name: string, hourlyRate: number, color: string) => {
     if (editingClient) {
       await updateClient(editingClient.id, { name, hourly_rate: hourlyRate, color })
+      showToast('Client updated')
     } else {
       await addClient(name, hourlyRate, color)
+      showToast('Client added')
     }
   }
 
@@ -64,7 +68,10 @@ export function Clients() {
                     <Pencil size={14} />
                   </button>
                   <button
-                    onClick={() => archiveClient(client.id)}
+                    onClick={async () => {
+                      await archiveClient(client.id)
+                      showToast('Client archived')
+                    }}
                     className="p-1.5 text-gray-400 hover:text-red-500 transition-colors"
                     title="Archive"
                   >
