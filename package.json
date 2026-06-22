@@ -1,7 +1,7 @@
 {
   "name": "timetrax",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.1.0",
   "type": "module",
   "main": "electron/main.cjs",
   "scripts": {
@@ -32,14 +32,20 @@
       "shortcutName": "TimeTrax"
     },
     "mac": {
-      "target": "dmg",
+      "target": ["dmg", "zip"],
       "icon": "public/icon.png"
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "coen593",
+      "repo": "timetrax"
     }
   },
   "dependencies": {
     "date-fns": "^4.4.0",
     "dexie": "^4.4.4",
     "dexie-react-hooks": "^4.4.0",
+    "electron-updater": "^6.8.9",
     "lucide-react": "^1.20.0",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
