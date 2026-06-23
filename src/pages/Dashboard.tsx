@@ -6,7 +6,7 @@ import { useTimeEntries } from '../hooks/useTimeEntries'
 import { useTimer } from '../hooks/useTimer'
 import { OverviewCards } from '../components/OverviewCards'
 import { TimeEntryList } from '../components/TimeEntryList'
-import { formatElapsed } from '../lib/format'
+import { formatElapsed, formatDayTotal } from '../lib/format'
 
 export function Dashboard() {
   const { clients } = useClients()
@@ -45,6 +45,17 @@ export function Dashboard() {
     }
 
     return { todaySeconds, weekSeconds, monthSeconds, monthEarnings }
+  }, [entries])
+
+  const todaySecondsByClient = useMemo(() => {
+    const dayStart = startOfDay(new Date())
+    const map: Record<string, number> = {}
+    for (const entry of entries) {
+      if (new Date(entry.start_time) >= dayStart) {
+        map[entry.client_id] = (map[entry.client_id] ?? 0) + (entry.duration_seconds ?? 0)
+      }
+    }
+    return map
   }, [entries])
 
   const recentEntries = entries.slice(0, 10)
@@ -89,6 +100,9 @@ export function Dashboard() {
                     {formatElapsed(elapsed)}
                   </span>
                 )}
+                <span className="text-xs text-gray-400 font-mono tabular-nums">
+                  {formatDayTotal(todaySecondsByClient[client.id] ?? 0)}
+                </span>
               </button>
             )
           })}
